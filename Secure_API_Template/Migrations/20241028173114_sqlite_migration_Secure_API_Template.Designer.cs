@@ -10,8 +10,8 @@ using Secure_API_Template.DataBase.Context;
 namespace Secure_API_Template.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20241005200954_sqlite_migration_secure_API_test")]
-    partial class sqlite_migration_secure_API_test
+    [Migration("20241028173114_sqlite_migration_Secure_API_Template")]
+    partial class sqlite_migration_Secure_API_Template
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -19,15 +19,19 @@ namespace Secure_API_Template.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
 
-            modelBuilder.Entity("Secure_API_Template.Entites.AppUsers", b =>
+            modelBuilder.Entity("Secure_API_Template.DataBase.Entites.AppUsers", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Password")
+                    b.Property<byte[]>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("BLOB");
+
+                    b.Property<byte[]>("PasswordSalt")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
 
                     b.Property<string>("UserName")
                         .IsRequired()

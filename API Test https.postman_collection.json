@@ -1,0 +1,50 @@
+{
+	"info": {
+		"_postman_id": "f7153c6b-cd83-4724-a83a-0ba827022e81",
+		"name": "API Test https",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get All Users IIS",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:7051/api/Users",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7051",
+					"path": [
+						"api",
+						"Users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User By ID IIS",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:44342/api/Users/4",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "44342",
+					"path": [
+						"api",
+						"Users",
+						"4"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

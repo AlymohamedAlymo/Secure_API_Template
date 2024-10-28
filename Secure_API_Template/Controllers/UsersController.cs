@@ -2,27 +2,44 @@
 using Microsoft.AspNetCore.Mvc;
 using Secure_API_Template.DataBase.Context;
 using Secure_API_Template.DataBase.Entites;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Secure_API_Template.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UsersController(DataContext dataContext) : ControllerBase
+    public class UsersController(DataContext dataContext) : BaseApiController
     {
 
         [HttpGet]
-        public ActionResult<IEnumerable<AppUsers>> GetUsers()
+        public async Task<ActionResult<IEnumerable<AppUsers>>> GetUsers()
         {
-            return Ok(dataContext.Users.ToList());
+            return Ok(await dataContext.Users.ToListAsync());
         }
 
 
         [HttpGet("{id:int}")]
-        public ActionResult<AppUsers> GetUser(int id)
+        public async Task<ActionResult<AppUsers>> GetUser(int id)
         {
-            var user = dataContext.Users.Find(id);
-            if (user == null) return NotFound();
-            return Ok(user);
+            var user = await dataContext.Users.FindAsync(id);
+            return user == null ? NotFound() : Ok(user);
+        }
+
+
+        [HttpPost("addNewUser")]
+        public async Task<ActionResult<int>> AddNewUser(string UserName, string PassWord)
+        {
+            using var HashPass = new HMACSHA512();
+            var user = new AppUsers
+            {
+                UserName = UserName,
+                PasswordHash = HashPass.ComputeHash(Encoding.UTF8.GetBytes(PassWord)),
+                PasswordSalt = HashPass.Key
+            };
+            dataContext.Users.Add(user);
+            int Result = await dataContext.SaveChangesAsync();
+            return Ok(Result);
         }
 
     }
