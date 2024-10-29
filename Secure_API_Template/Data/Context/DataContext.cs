@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Secure_API_Template.DataBase.Entites;
+using Secure_API_Template.Data.Entites;
 
-namespace Secure_API_Template.DataBase.Context
+namespace Secure_API_Template.Data.Context
 {
     public class DataContext(DbContextOptions options) : DbContext(options)
     {

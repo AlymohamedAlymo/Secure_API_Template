@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Secure_API_Template.Migrations
+namespace Secure_API_Template.Data.Migrations
 {
     /// <inheritdoc />
     public partial class sqlite_migration_Secure_API_Template : Migration

@@ -1,4 +1,4 @@
-﻿namespace Secure_API_Template.DataBase.Entites
+﻿namespace Secure_API_Template.Data.Entites
 {
     public class AppUsers
     {

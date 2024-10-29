@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Secure_API_Template.DataBase.Context;
+using Secure_API_Template.Data.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 

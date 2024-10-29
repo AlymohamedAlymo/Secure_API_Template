@@ -1,24 +1,30 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Secure_API_Template.DataBase.Context;
-using Secure_API_Template.DataBase.Entites;
+﻿using Microsoft.AspNetCore.Mvc;
+using Secure_API_Template.Data.Context;
+using Secure_API_Template.Data.Entites;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel;
 using System.Security.Cryptography;
 using System.Text;
+using Secure_API_Template.Data.DTOs;
 
 namespace Secure_API_Template.Controllers
 {
     public class UsersController(DataContext dataContext) : BaseApiController
     {
-
+        /// <summary>
+        /// ///////////////////////////////////Get All Users
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AppUsers>>> GetUsers()
         {
             return Ok(await dataContext.Users.ToListAsync());
         }
 
-
+        /// <summary>
+        /// /////////////////////////////////Get User By ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id:int}")]
         public async Task<ActionResult<AppUsers>> GetUser(int id)
         {
@@ -27,13 +33,46 @@ namespace Secure_API_Template.Controllers
         }
 
 
-        [HttpPost("addNewUser")]
-        public async Task<ActionResult<int>> AddNewUser(string UserName, string PassWord)
+
+        #region Add New User
+
+        /// <summary>
+        /// ////////////////////////////////////////From URL
+        /// </summary>
+        /// <param name="UserName"></param>
+        /// <param name="Password"></param>
+        /// <returns></returns>
+        [HttpPost("AddNewUser/{UserName}/{Password}")]
+        public async Task<ActionResult<int>> AddNewUser(string UserName, string Password)
         {
+            if (await UserExists(UserName)) { return BadRequest("اسم المستخدم مسجل من قبل..الرجاء اختيار اسم مستخدم جديد"); }
             using var HashPass = new HMACSHA512();
             var user = new AppUsers
             {
-                UserName = UserName,
+                UserName = UserName.ToLower(),
+                PasswordHash = HashPass.ComputeHash(Encoding.UTF8.GetBytes(Password)),
+                PasswordSalt = HashPass.Key
+            };
+            dataContext.Users.Add(user);
+            int Result = await dataContext.SaveChangesAsync();
+            return Ok(Result);
+        }
+
+
+        /// <summary>
+        /// /////////////////////////////////////////From Parameters
+        /// </summary>
+        /// <param name="UserName"></param>
+        /// <param name="PassWord"></param>
+        /// <returns></returns>
+        [HttpPost("AddNewUser")]
+        public async Task<ActionResult<int>> AddNewUser2(string UserName, string PassWord)
+        {
+            if (await UserExists(UserName)) { return BadRequest("اسم المستخدم مسجل من قبل..الرجاء اختيار اسم مستخدم جديد"); }
+            using var HashPass = new HMACSHA512();
+            var user = new AppUsers
+            {
+                UserName = UserName.ToLower(),
                 PasswordHash = HashPass.ComputeHash(Encoding.UTF8.GetBytes(PassWord)),
                 PasswordSalt = HashPass.Key
             };
@@ -41,6 +80,105 @@ namespace Secure_API_Template.Controllers
             int Result = await dataContext.SaveChangesAsync();
             return Ok(Result);
         }
+
+        /// <summary>
+        /// ///////////////////////////////////From Body
+        /// </summary>
+        /// <param name="newUserDTO"></param>
+        /// <returns></returns>
+        [HttpPost("AddNewUser2")]
+        public async Task<ActionResult<AppUsers>> AddNewUser([FromBody] UserDTO newUserDTO)
+        {
+            if (await UserExists(newUserDTO.UserName)) { return BadRequest("اسم المستخدم مسجل من قبل..الرجاء اختيار اسم مستخدم جديد"); }
+            using var HashPass = new HMACSHA512();
+            var user = new AppUsers
+            {
+                UserName = newUserDTO.UserName.ToLower(),
+                PasswordHash = HashPass.ComputeHash(Encoding.UTF8.GetBytes(newUserDTO.Password)),
+                PasswordSalt = HashPass.Key
+            };
+            dataContext.Users.Add(user);
+            int Result = await dataContext.SaveChangesAsync();
+            return Ok(user);
+        }
+
+        private async Task<bool> UserExists(string username)
+        {
+            return await dataContext.Users.AnyAsync(u => u.UserName == username.ToLower());
+
+        }
+
+        #endregion Add New User
+
+        #region User Login
+
+
+        /// <summary>
+        /// /////////////////////////////////////From URL
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        [HttpPost("Login/{username}/{password}")]
+        public async Task<ActionResult<AppUsers>> Login(string username, string password)
+        {
+            var user = await dataContext.Users.FirstOrDefaultAsync(u => u.UserName == username.ToLower());
+            if (user == null) { return Unauthorized("اسم المستخدم خطاء"); }
+
+            using var hashPass = new HMACSHA512(user.PasswordSalt);
+            var computeHash = hashPass.ComputeHash(Encoding.UTF8.GetBytes(password));
+
+            for (int i = 0; i < computeHash.Length; i++)
+            {
+                if (computeHash[i] != user.PasswordHash[i]) { return Unauthorized("كلمة المرور خطاء"); }
+            }
+            return Ok(user);
+        }
+
+        /// <summary>
+        /// //////////////////////////////////////////////From Parameters
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        [HttpPost("Login2")]
+        public async Task<ActionResult<AppUsers>> Login2(string username, string password)
+        {
+            var user = await dataContext.Users.FirstOrDefaultAsync(u => u.UserName == username.ToLower());
+            if (user == null) { return Unauthorized("اسم المستخدم خطاء"); }
+
+            using var hashPass = new HMACSHA512(user.PasswordSalt);
+            var computeHash = hashPass.ComputeHash(Encoding.UTF8.GetBytes(password));
+
+            for (int i = 0; i < computeHash.Length; i++) 
+            {
+                if (computeHash[i] != user.PasswordHash[i]) { return Unauthorized("كلمة المرور خطاء"); }
+            }
+            return Ok(user);
+        }
+
+        /// <summary>
+        /// ///////////////////////////////////////////From Body
+        /// </summary>
+        /// <param name="userDTO"></param>
+        /// <returns></returns>
+        [HttpPost("Login")]
+        public async Task<ActionResult<AppUsers>> Login([FromBody] UserDTO userDTO)
+        {
+            var user = await dataContext.Users.FirstOrDefaultAsync(u => u.UserName == userDTO.UserName.ToLower());
+            if (user == null) { return Unauthorized("اسم المستخدم خطاء"); }
+
+            using var hashPass = new HMACSHA512(user.PasswordSalt);
+            var computeHash = hashPass.ComputeHash(Encoding.UTF8.GetBytes(userDTO.Password));
+
+            for (int i = 0; i < computeHash.Length; i++)
+            {
+                if (computeHash[i] != user.PasswordHash[i]) { return Unauthorized("كلمة المرور خطاء"); }
+            }
+            return Ok(user);
+        }
+
+        #endregion User Login
 
     }
 }
