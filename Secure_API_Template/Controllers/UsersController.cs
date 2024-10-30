@@ -5,15 +5,19 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 using Secure_API_Template.Data.DTOs;
+using Secure_API_Template.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Secure_API_Template.Controllers
 {
-    public class UsersController(DataContext dataContext) : BaseApiController
+    public class UsersController(DataContext dataContext, ITokenService tokenService) : BaseApiController
     {
         /// <summary>
         /// ///////////////////////////////////Get All Users
         /// </summary>
         /// <returns></returns>
+        /// 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AppUsers>>> GetUsers()
         {
@@ -25,6 +29,8 @@ namespace Secure_API_Template.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        /// 
+        [Authorize]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<AppUsers>> GetUser(int id)
         {
@@ -87,7 +93,7 @@ namespace Secure_API_Template.Controllers
         /// <param name="newUserDTO"></param>
         /// <returns></returns>
         [HttpPost("AddNewUser2")]
-        public async Task<ActionResult<AppUsers>> AddNewUser([FromBody] UserDTO newUserDTO)
+        public async Task<ActionResult<UserTokenDTO>> AddNewUser([FromBody] UserDTO newUserDTO)
         {
             if (await UserExists(newUserDTO.UserName)) { return BadRequest("اسم المستخدم مسجل من قبل..الرجاء اختيار اسم مستخدم جديد"); }
             using var HashPass = new HMACSHA512();
@@ -99,7 +105,7 @@ namespace Secure_API_Template.Controllers
             };
             dataContext.Users.Add(user);
             int Result = await dataContext.SaveChangesAsync();
-            return Ok(user);
+            return Ok(new UserTokenDTO { UserName = user.UserName, Token = tokenService.CreateToken(user) });
         }
 
         private async Task<bool> UserExists(string username)
@@ -120,7 +126,7 @@ namespace Secure_API_Template.Controllers
         /// <param name="password"></param>
         /// <returns></returns>
         [HttpPost("Login/{username}/{password}")]
-        public async Task<ActionResult<AppUsers>> Login(string username, string password)
+        public async Task<ActionResult<UserTokenDTO>> Login(string username, string password)
         {
             var user = await dataContext.Users.FirstOrDefaultAsync(u => u.UserName == username.ToLower());
             if (user == null) { return Unauthorized("اسم المستخدم خطاء"); }
@@ -132,7 +138,7 @@ namespace Secure_API_Template.Controllers
             {
                 if (computeHash[i] != user.PasswordHash[i]) { return Unauthorized("كلمة المرور خطاء"); }
             }
-            return Ok(user);
+            return Ok(new UserTokenDTO { UserName = user.UserName, Token = tokenService.CreateToken(user) });
         }
 
         /// <summary>
@@ -142,7 +148,7 @@ namespace Secure_API_Template.Controllers
         /// <param name="password"></param>
         /// <returns></returns>
         [HttpPost("Login2")]
-        public async Task<ActionResult<AppUsers>> Login2(string username, string password)
+        public async Task<ActionResult<UserTokenDTO>> Login2(string username, string password)
         {
             var user = await dataContext.Users.FirstOrDefaultAsync(u => u.UserName == username.ToLower());
             if (user == null) { return Unauthorized("اسم المستخدم خطاء"); }
@@ -154,7 +160,7 @@ namespace Secure_API_Template.Controllers
             {
                 if (computeHash[i] != user.PasswordHash[i]) { return Unauthorized("كلمة المرور خطاء"); }
             }
-            return Ok(user);
+            return Ok(new UserTokenDTO { UserName = user.UserName, Token = tokenService.CreateToken(user) });
         }
 
         /// <summary>
@@ -163,7 +169,7 @@ namespace Secure_API_Template.Controllers
         /// <param name="userDTO"></param>
         /// <returns></returns>
         [HttpPost("Login")]
-        public async Task<ActionResult<AppUsers>> Login([FromBody] UserDTO userDTO)
+        public async Task<ActionResult<UserTokenDTO>> Login([FromBody] UserDTO userDTO)
         {
             var user = await dataContext.Users.FirstOrDefaultAsync(u => u.UserName == userDTO.UserName.ToLower());
             if (user == null) { return Unauthorized("اسم المستخدم خطاء"); }
@@ -175,7 +181,7 @@ namespace Secure_API_Template.Controllers
             {
                 if (computeHash[i] != user.PasswordHash[i]) { return Unauthorized("كلمة المرور خطاء"); }
             }
-            return Ok(user);
+            return Ok(new UserTokenDTO { UserName = user.UserName, Token = tokenService.CreateToken(user) }); ;
         }
 
         #endregion User Login

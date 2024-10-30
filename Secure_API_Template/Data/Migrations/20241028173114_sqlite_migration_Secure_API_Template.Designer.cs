@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Secure_API_Template.DataBase.Context;
+using Secure_API_Template.Data.Context;
 
 #nullable disable
 
-namespace Secure_API_Template.Migrations
+namespace Secure_API_Template.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
     [Migration("20241028173114_sqlite_migration_Secure_API_Template")]
