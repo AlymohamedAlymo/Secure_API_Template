@@ -5,11 +5,12 @@ namespace Secure_API_Template.Data.DTOs
     public class UserDTO
     {
         [Required]
-        //[MaxLength(100)]
-        public required string UserName { get; set; }
+        [StringLength(10, MinimumLength = 5)]
+        public required string UserName { get; set; } = string.Empty;
 
         [Required]
-        public required string Password { get; set; }
+        [StringLength(10, MinimumLength = 5)]
+        public required string Password { get; set; } = string.Empty;
 
     }
 }

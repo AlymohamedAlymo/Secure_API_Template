@@ -95,6 +95,7 @@ namespace Secure_API_Template.Controllers
         [HttpPost("AddNewUser2")]
         public async Task<ActionResult<UserTokenDTO>> AddNewUser([FromBody] UserDTO newUserDTO)
         {
+            throw new Exception("exception");
             if (await UserExists(newUserDTO.UserName)) { return BadRequest("اسم المستخدم مسجل من قبل..الرجاء اختيار اسم مستخدم جديد"); }
             using var HashPass = new HMACSHA512();
             var user = new AppUsers
