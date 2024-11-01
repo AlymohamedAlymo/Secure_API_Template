@@ -5,9 +5,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Secure_API_Template.Repositeries
+namespace Secure_API_Template.Services
 {
-    public class TokenServiceRep(IConfiguration configuration) : ITokenService
+    public class TokenService(IConfiguration configuration) : ITokenService
     {
         public string CreateToken(AppUsers user)
         {
